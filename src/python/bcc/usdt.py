@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import ctypes as ct
-import sys
+import os, sys
 from .libbcc import lib, _USDT_CB, _USDT_PROBE_CB, \
                     bcc_usdt_location, bcc_usdt_argument, \
                     BCC_USDT_ARGUMENT_FLAGS
@@ -136,6 +136,12 @@ class USDT(object):
         else:
             raise USDTException(
                     "either a pid or a binary path must be specified")
+
+    def get_mnt_exe_path(self):
+        if self.pid is None:
+            return None, self.path
+        return (os.readlink("/proc/%d/ns/mnt" % (self.pid)),
+                os.readlink("/proc/%d/exe" % (self.pid)))
 
     def enable_probe(self, probe, fn_name):
         if lib.bcc_usdt_enable_probe(self.context, probe.encode('ascii'),
